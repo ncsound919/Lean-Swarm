@@ -1,6 +1,8 @@
 {
   "name": "Lean Swarm Orchestrator",
-  "description": "Deterministic control plane and continuous hypothesis engine for Lean 4 mathematical theorem proving, integer relation detection (PSLQ), equality saturation, and barrier-aware routing.",
+  "description": "Multi-agent autonomous formal verification swarm and deterministic proof assistant for Millennium Prize mathematical tracks in Lean 4 and Mathlib.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

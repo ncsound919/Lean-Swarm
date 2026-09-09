@@ -11,6 +11,6 @@ conductor_log.jsonl
 !.env.example
 *.service-account.json
 *credentials*.json
-.lean_artifacts/temp_*
-.lean_artifacts/artifact_*
+.lean_artifacts/
+.cas_store/
 build_attestations/

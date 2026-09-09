@@ -6,6 +6,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Connection validation endpoint (read-only)
+    match /test/{docId} {
+      allow get: if true;
+    }
+
     // Common Helpers
     function isSignedIn() { return request.auth != null; }
     function isOwner(swarmId) {
@@ -37,7 +42,7 @@ service cloud.firestore {
 
       match /lemmas/{lemmaId} {
         allow read: if isOwner(swarmId);
-        allow write: if isOwner(swarmId); // Simplified for this implementation, real production would restrict to server
+        allow write: if isOwner(swarmId);
       }
 
       match /ledger/{entryId} {

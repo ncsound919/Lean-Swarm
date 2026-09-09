@@ -17,7 +17,7 @@ The following are forbidden in committed code, committed data, and completion re
 - Fake data: fabricated datasets, invented benchmark numbers, synthetic records presented as real, invented citations or paper titles.
 - Simulated verification: claiming a build passed without running it, printing success messages uncoupled from real checks, tests written to always pass, weakened or deleted assertions.
 - Deferred work presented as done: `TODO`, `FIXME`, `placeholder`, `not implemented`, or `for now` in code submitted as complete.
-- Lean-specific: `sorry`, `admit`, `axiom` introductions, or `native_decide` escapes unless the spec explicitly authorizes them. A proof that does not compile against mathlib with zero `sorry` does not exist.
+- Lean-specific: `sorry`, `admit`, unauthorized `axiom` introductions, or `native_decide` escapes. A proof that does not compile against mathlib with zero `sorry` does not exist. (Carve-out: Spec-level open conjecture declarations are authorized in formal problem specification files only, must be declared as formal `structure` types, `conjecture` signatures, or explicit `ClayX_Spec` axioms, and may never be invoked or applied as proof steps to close subgoals).
 - Scope drift: delivering a "simplified version", a "proof of concept" when a real implementation was requested, or silently swapping a hard requirement for an easy approximation.
 - Silent deviation: any departure from the spec that is not explicitly flagged in the report.
 

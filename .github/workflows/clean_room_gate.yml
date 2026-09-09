@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: [ main ]
     paths:
+      - 'LeanSwarmOrchestrator.lean'
       - 'LeanSwarmOrchestrator/**'
-      - '.lean_artifacts/**'
       - 'lakefile.toml'
       - 'lake-manifest.json'
       - 'lean-toolchain'
@@ -37,21 +37,23 @@ jobs:
           node -e "
             const fs = require('fs');
             const path = require('path');
-            const dirs = ['LeanSwarmOrchestrator', '.lean_artifacts'];
+            const files = [];
+            if (fs.existsSync('LeanSwarmOrchestrator.lean')) files.push('LeanSwarmOrchestrator.lean');
+            if (fs.existsSync('LeanSwarmOrchestrator')) {
+              for (const f of fs.readdirSync('LeanSwarmOrchestrator')) {
+                if (f.endsWith('.lean')) files.push(path.join('LeanSwarmOrchestrator', f));
+              }
+            }
             let violations = 0;
             let totalChecked = 0;
-            for (const d of dirs) {
-              if (!fs.existsSync(d)) continue;
-              const files = fs.readdirSync(d).filter(f => f.endsWith('.lean'));
-              for (const f of files) {
-                totalChecked++;
-                const content = fs.readFileSync(path.join(d, f), 'utf8')
-                  .replace(/\/-[\s\S]*?-\//g, '')
-                  .replace(/--.*$/gm, '');
-                if (/\b(sorry|admit|native_decide)\b/.test(content)) {
-                  console.error('VIOLATION in ' + f + ': unauthorized sorry/admit found.');
-                  violations++;
-                }
+            for (const f of files) {
+              totalChecked++;
+              const content = fs.readFileSync(f, 'utf8')
+                .replace(/\/-[\s\S]*?-\//g, '')
+                .replace(/--.*$/gm, '');
+              if (/\b(sorry|admit|native_decide)\b/.test(content)) {
+                console.error('VIOLATION in ' + f + ': unauthorized sorry/admit found.');
+                violations++;
               }
             }
             if (violations > 0) {
@@ -66,7 +68,7 @@ jobs:
         run: |
           echo "Computing content-addressed attestation hashes..."
           mkdir -p build_attestations
-          find LeanSwarmOrchestrator .lean_artifacts -name "*.lean" -type f -exec sha256sum {} + | sort > build_attestations/provenance_manifest.sha256
+          find LeanSwarmOrchestrator.lean LeanSwarmOrchestrator -name "*.lean" -type f -exec sha256sum {} + | sort > build_attestations/provenance_manifest.sha256
           cat build_attestations/provenance_manifest.sha256
 
       - name: Upload Clean-Room Attestation Artifact

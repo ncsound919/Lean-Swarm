@@ -37,6 +37,6 @@ structure ChebyshevRemainderCertificate where
   discrepancy_bound : Float
   bound_holds : psi_x - (Float.ofNat x) <= discrepancy_bound
 
--- Verification lemmas without sorry
+-- Verification lemmas with deterministic closed proofs
 theorem robin_5041_witness : (5041 > 5040) = true := by rfl
 theorem redheffer_dim1_mertens : RedhefferEntry 1 1 = 1 := by rfl
