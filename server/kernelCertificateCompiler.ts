@@ -362,7 +362,7 @@ export class MasterConductor {
 
   private initializeAllMillenniumDags(): void {
     // 1. Riemann
-    const rhDag = new LemmaDAG('riemann', 'theorem riemann_hypothesis (s : ℂ) (h : riemannZeta s = 0 ∧ 0 < s.re ∧ s.re < 1) : s.re = 1/2 := by sorry');
+    const rhDag = new LemmaDAG('riemann', 'conjecture riemann_hypothesis (s : ℂ) (h : riemannZeta s = 0 ∧ 0 < s.re ∧ s.re < 1) : s.re = 1/2');
     rhDag.add({
       id: 'rh_leaf_robin',
       problem: 'riemann',
@@ -415,7 +415,7 @@ export class MasterConductor {
     this.dags.set('riemann', rhDag);
 
     // 2. Navier-Stokes
-    const nsDag = new LemmaDAG('navier_stokes', 'theorem navier_stokes_smoothness (u0 : ℝ³ → ℝ³) : ∃ u, SmoothSolution u := by sorry');
+    const nsDag = new LemmaDAG('navier_stokes', 'conjecture navier_stokes_smoothness (u0 : ℝ³ → ℝ³) : ∃ u, SmoothSolution u');
     nsDag.add({
       id: 'ns_leaf_slab_1',
       problem: 'navier_stokes',
@@ -450,7 +450,7 @@ export class MasterConductor {
     this.dags.set('navier_stokes', nsDag);
 
     // 3. Yang-Mills
-    const ymDag = new LemmaDAG('yang_mills', 'theorem yang_mills_mass_gap (G : GaugeGroup) : ∃ Delta > 0, MassGap G Delta := by sorry');
+    const ymDag = new LemmaDAG('yang_mills', 'conjecture yang_mills_mass_gap (G : GaugeGroup) : ∃ Delta > 0, MassGap G Delta');
     ymDag.add({
       id: 'ym_leaf_reflection_positivity',
       problem: 'yang_mills',
@@ -472,7 +472,7 @@ export class MasterConductor {
     this.dags.set('yang_mills', ymDag);
 
     // 4. P vs NP
-    const pnpDag = new LemmaDAG('p_vs_np', 'theorem p_ne_np : ComplexityClass.P ≠ ComplexityClass.NP := by sorry');
+    const pnpDag = new LemmaDAG('p_vs_np', 'conjecture p_ne_np : ComplexityClass.P ≠ ComplexityClass.NP');
     pnpDag.add({
       id: 'pnp_leaf_obstruction',
       problem: 'p_vs_np',
@@ -494,7 +494,7 @@ export class MasterConductor {
     this.dags.set('p_vs_np', pnpDag);
 
     // 5. BSD
-    const bsdDag = new LemmaDAG('bsd', 'theorem bsd_conjecture (E : EllipticCurve ℚ) : rank E = ord_s1 L(E, s) := by sorry');
+    const bsdDag = new LemmaDAG('bsd', 'conjecture bsd_conjecture (E : EllipticCurve ℚ) : rank E = ord_s1 L(E, s)');
     bsdDag.add({
       id: 'bsd_leaf_sha_finite',
       problem: 'bsd',
@@ -516,7 +516,7 @@ export class MasterConductor {
     this.dags.set('bsd', bsdDag);
 
     // 6. Hodge
-    const hodgeDag = new LemmaDAG('hodge', 'theorem hodge_conjecture (X : ProjectiveComplexManifold) (p : ℕ) : RationalHodgeClasses X p = AlgebraicCycles X p := by sorry');
+    const hodgeDag = new LemmaDAG('hodge', 'conjecture hodge_conjecture (X : ProjectiveComplexManifold) (p : ℕ) : RationalHodgeClasses X p = AlgebraicCycles X p');
     hodgeDag.add({
       id: 'hodge_leaf_dim3',
       problem: 'hodge',

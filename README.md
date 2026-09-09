@@ -81,10 +81,34 @@ A production-grade, mathematically rigorous Lean 4 verification and swarm orches
 
 ---
 
-## Codebase Hierarchy
+## Codebase Hierarchy & Runtime Resolution
 
-- **Live Server & Web API (`server/`, `src/`)**: Active TypeScript backend and React UI powering the interactive proof studio and WebSocket stream.
-- **Research CLI Kernels (`*.py`)**: Standalone reference implementations (`kernel_certificate_compiler.py`, `lean_process_oracle.py`, `mche_engine.py`) designed for batch benchmarking, Python-native CAS interop, and verification replay.
+- **Authoritative Production System (`server/`, `src/`)**: Single source of truth. Production TypeScript backend and React UI powering the interactive proof studio, live WebSocket conductor feed, deterministic closer suite, and verification gates.
+- **Reference-Only Research Prototypes (`*.py`)**: The Python files (`kernel_certificate_compiler.py`, `lean_process_oracle.py`, `mche_engine.py`) are **strictly reference implementations** for algorithmic demonstration, CAS prototyping, and offline research verification. All active execution, APIs, and tests run through the TypeScript engines.
+
+---
+
+## Branch Protection & Physical Verification Gates
+
+To ensure the promotion gate is physics rather than policy, branch protection rules for `main` enforce the following required status checks:
+
+1. **`verify` (from `.github/workflows/ci.yml`)**:
+   - Pinned TypeScript typecheck (`npm run lint`).
+   - Zero-`sorry` AST verification across all Lean 4 and Mathlib tracks.
+   - Comprehensive deterministic unit and integration test suite (`npm test`).
+   - Production bundle compilation (`npm run build`).
+
+2. **`clean_room_verify` (from `.github/workflows/clean_room_gate.yml`)**:
+   - Pinned toolchain check (`leanprover/lean4:v4.18.0`).
+   - Mathlib dependency tree integrity check (`lakefile.toml`, `lake-manifest.json`).
+   - Strict AST zero-sorry / zero-admit / zero-native_decide scan.
+   - SHA-256 cryptographic provenance manifest generation (`build_attestations/provenance_manifest.sha256`).
+
+3. **Required Physical Invariants**:
+   - Require Pull Request before merging.
+   - Require linear history.
+   - Do not allow bypass for administrators.
+   - Auto-reject any PR modifying Lean code that fails the zero-`sorry` scanner.
 
 ---
 

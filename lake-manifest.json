@@ -14,6 +14,17 @@
       "configFile": "lakefile.lean"
     },
     {
+      "url": "https://github.com/leanprover-community/batteries.git",
+      "type": "git",
+      "subDir": null,
+      "rev": "v4.18.0",
+      "name": "batteries",
+      "manifestFile": "lake-manifest.json",
+      "inputRev": "v4.18.0",
+      "inherited": true,
+      "configFile": "lakefile.lean"
+    },
+    {
       "url": "https://github.com/leanprover-community/aesop.git",
       "type": "git",
       "subDir": null,
@@ -23,6 +34,61 @@
       "inputRev": "v4.18.0",
       "inherited": false,
       "configFile": "lakefile.toml"
+    },
+    {
+      "url": "https://github.com/leanprover-community/Quote4.git",
+      "type": "git",
+      "subDir": null,
+      "rev": "v4.18.0",
+      "name": "Qq",
+      "manifestFile": "lake-manifest.json",
+      "inputRev": "v4.18.0",
+      "inherited": true,
+      "configFile": "lakefile.lean"
+    },
+    {
+      "url": "https://github.com/leanprover-community/ProofWidgets4.git",
+      "type": "git",
+      "subDir": null,
+      "rev": "v4.18.0",
+      "name": "proofwidgets",
+      "manifestFile": "lake-manifest.json",
+      "inputRev": "v4.18.0",
+      "inherited": true,
+      "configFile": "lakefile.lean"
+    },
+    {
+      "url": "https://github.com/leanprover-community/import-graph.git",
+      "type": "git",
+      "subDir": null,
+      "rev": "v4.18.0",
+      "name": "importGraph",
+      "manifestFile": "lake-manifest.json",
+      "inputRev": "v4.18.0",
+      "inherited": true,
+      "configFile": "lakefile.lean"
+    },
+    {
+      "url": "https://github.com/leanprover-community/plausible.git",
+      "type": "git",
+      "subDir": null,
+      "rev": "v4.18.0",
+      "name": "plausible",
+      "manifestFile": "lake-manifest.json",
+      "inputRev": "v4.18.0",
+      "inherited": true,
+      "configFile": "lakefile.toml"
+    },
+    {
+      "url": "https://github.com/leanprover/lean4-cli.git",
+      "type": "git",
+      "subDir": null,
+      "rev": "v4.18.0",
+      "name": "Cli",
+      "manifestFile": "lake-manifest.json",
+      "inputRev": "v4.18.0",
+      "inherited": true,
+      "configFile": "lakefile.lean"
     }
   ]
 }

@@ -7,22 +7,29 @@ on:
       - 'LeanSwarmOrchestrator/**'
       - '.lean_artifacts/**'
       - 'lakefile.toml'
+      - 'lake-manifest.json'
       - 'lean-toolchain'
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   clean_room_verify:
-    name: Isolated Clean-Room Lean 4 Verification
+    name: Isolated Clean-Room Lean 4 & Mathlib Verification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Verify Pinned Toolchain Existence
+      - name: Verify Pinned Toolchain & Mathlib Manifest
         run: |
           echo "Verifying pinned lean-toolchain..."
           cat lean-toolchain
           grep -E "^leanprover/lean4:v4\.[0-9]+\.[0-9]+" lean-toolchain || (echo "Invalid toolchain" && exit 1)
+          
+          echo "Verifying lakefile.toml and lake-manifest.json dependency configuration..."
+          grep -E "name = \"mathlib\"" lakefile.toml || (echo "Missing mathlib requirement in lakefile.toml" && exit 1)
+          grep -E "\"name\": \"mathlib\"" lake-manifest.json || (echo "Missing mathlib in lake-manifest.json" && exit 1)
 
       - name: AST Zero-Sorry Integrity Gate
         run: |
@@ -32,10 +39,12 @@ jobs:
             const path = require('path');
             const dirs = ['LeanSwarmOrchestrator', '.lean_artifacts'];
             let violations = 0;
+            let totalChecked = 0;
             for (const d of dirs) {
               if (!fs.existsSync(d)) continue;
               const files = fs.readdirSync(d).filter(f => f.endsWith('.lean'));
               for (const f of files) {
+                totalChecked++;
                 const content = fs.readFileSync(path.join(d, f), 'utf8')
                   .replace(/\/-[\s\S]*?-\//g, '')
                   .replace(/--.*$/gm, '');
@@ -45,8 +54,11 @@ jobs:
                 }
               }
             }
-            if (violations > 0) process.exit(1);
-            console.log('Clean-room AST scan passed with 0 sorry.');
+            if (violations > 0) {
+              console.error('FAILED: ' + violations + ' violations found.');
+              process.exit(1);
+            }
+            console.log('Clean-room AST scan passed across ' + totalChecked + ' Lean files with 0 sorry.');
           "
 
       - name: Compute Cryptographic SHA-256 Artifact Attestation

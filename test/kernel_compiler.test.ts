@@ -65,7 +65,7 @@ export function testKernelCompiler(): { passed: boolean; message: string } {
     id: 'trap_zeta_1',
     problem: 'riemann',
     informal: 'zeta(1) = 0',
-    lean_statement: 'theorem zeta_one_zero : riemannZeta 1 = 0 := by sorry',
+    lean_statement: 'theorem zeta_one_zero : riemannZeta 1 = 0',
     bit_width: 100,
     status: 'proposed',
     child_ids: [],

@@ -12,3 +12,5 @@ conductor_log.jsonl
 *.service-account.json
 *credentials*.json
 .lean_artifacts/temp_*
+.lean_artifacts/artifact_*
+build_attestations/
