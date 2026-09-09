@@ -1,0 +1,1 @@
+theorem test_sorry : False := by sorry

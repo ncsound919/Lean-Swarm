@@ -1,0 +1,1 @@
+def TestNS : Prop := True

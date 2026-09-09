@@ -1,0 +1,1 @@
+def TestNS (u : Fin 3 -> Real) : True := trivial

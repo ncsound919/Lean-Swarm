@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(swarmId) {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/swarms/$(swarmId)).data.ownerId == request.auth.uid
+      );
+    }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Swarm Validation
+    function isValidSwarm(data) {
+      return data.targetTheorem is string && data.targetTheorem.size() <= 256 &&
+             data.targetStatement is string && data.targetStatement.size() <= 2048 &&
+             data.phase in ['idle', 'decomposing', 'executing', 'assembling', 'finalizing'] &&
+             data.ownerId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    match /swarms/{swarmId} {
+      allow get: if isSignedIn() && (resource.data.ownerId == request.auth.uid);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(swarmId) && isValidSwarm(incoming());
+      allow update: if isSignedIn() && isOwner(swarmId) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['phase', 'spent', 'budget'])
+      );
+      allow delete: if false; // Swarms are archived, not deleted
+
+      match /lemmas/{lemmaId} {
+        allow read: if isOwner(swarmId);
+        allow write: if isOwner(swarmId); // Simplified for this implementation, real production would restrict to server
+      }
+
+      match /ledger/{entryId} {
+        allow read: if isOwner(swarmId);
+        allow create: if isOwner(swarmId);
+      }
+
+      match /agents/{agentId} {
+        allow read: if isOwner(swarmId);
+        allow write: if isOwner(swarmId);
+      }
+
+      match /logs/{logId} {
+        allow read: if isOwner(swarmId);
+        allow create: if isOwner(swarmId);
+      }
+    }
+  }
+}
