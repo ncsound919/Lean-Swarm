@@ -4,5 +4,11 @@ dist/
 coverage/
 .DS_Store
 *.log
+conductor_log.jsonl
+*.trace
+.lake/
 .env*
 !.env.example
+*.service-account.json
+*credentials*.json
+.lean_artifacts/temp_*

@@ -1,1 +1,0 @@
-theorem test_clean : True := by trivial

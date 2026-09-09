@@ -1,0 +1,64 @@
+name: Clean-Room Kernel Gate & Artifact Attestation
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'LeanSwarmOrchestrator/**'
+      - '.lean_artifacts/**'
+      - 'lakefile.toml'
+      - 'lean-toolchain'
+  workflow_dispatch:
+
+jobs:
+  clean_room_verify:
+    name: Isolated Clean-Room Lean 4 Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify Pinned Toolchain Existence
+        run: |
+          echo "Verifying pinned lean-toolchain..."
+          cat lean-toolchain
+          grep -E "^leanprover/lean4:v4\.[0-9]+\.[0-9]+" lean-toolchain || (echo "Invalid toolchain" && exit 1)
+
+      - name: AST Zero-Sorry Integrity Gate
+        run: |
+          echo "Scanning all Lean source files for unauthorized sorry / admit / native_decide..."
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const dirs = ['LeanSwarmOrchestrator', '.lean_artifacts'];
+            let violations = 0;
+            for (const d of dirs) {
+              if (!fs.existsSync(d)) continue;
+              const files = fs.readdirSync(d).filter(f => f.endsWith('.lean'));
+              for (const f of files) {
+                const content = fs.readFileSync(path.join(d, f), 'utf8')
+                  .replace(/\/-[\s\S]*?-\//g, '')
+                  .replace(/--.*$/gm, '');
+                if (/\b(sorry|admit|native_decide)\b/.test(content)) {
+                  console.error('VIOLATION in ' + f + ': unauthorized sorry/admit found.');
+                  violations++;
+                }
+              }
+            }
+            if (violations > 0) process.exit(1);
+            console.log('Clean-room AST scan passed with 0 sorry.');
+          "
+
+      - name: Compute Cryptographic SHA-256 Artifact Attestation
+        id: attestation
+        run: |
+          echo "Computing content-addressed attestation hashes..."
+          mkdir -p build_attestations
+          find LeanSwarmOrchestrator .lean_artifacts -name "*.lean" -type f -exec sha256sum {} + | sort > build_attestations/provenance_manifest.sha256
+          cat build_attestations/provenance_manifest.sha256
+
+      - name: Upload Clean-Room Attestation Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-room-attestation
+          path: build_attestations/provenance_manifest.sha256

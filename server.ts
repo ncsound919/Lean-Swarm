@@ -62,6 +62,17 @@ import {
   PROBLEM_REGISTRY,
   split_is_legal
 } from "./server/kernelCertificateCompiler.ts";
+import {
+  gitHubSwarmBridge
+} from "./server/githubSwarmBridge.ts";
+import {
+  predictionMarketEngine,
+  proverArenaEngine,
+  glueAdversaryRedTeam,
+  proofGolfLeaderboard,
+  crossProblemLemmaBroker,
+  dreamAndDistillCycle
+} from "./server/creativeForceMultipliers.ts";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -791,6 +802,144 @@ async function startServer() {
   app.get("/api/compiler/logs", (req, res) => {
     const limit = Number(req.query.limit || 100);
     res.json({ logs: masterConductor.logs.slice(0, limit) });
+  });
+
+  // ==========================================
+  // GitHub-Native Swarm Ledger & CI Endpoints
+  // ==========================================
+  app.get("/api/github-swarm/issues", (req, res) => {
+    res.json({
+      issues: Array.from(gitHubSwarmBridge.issues.values()),
+      projectColumns: gitHubSwarmBridge.projectColumns
+    });
+  });
+
+  app.post("/api/github-swarm/file-issue", (req, res) => {
+    try {
+      const { problemId, leafId } = req.body;
+      const dag = masterConductor.dags.get(problemId || 'riemann');
+      if (!dag) return res.status(404).json({ error: `Problem ${problemId} not found` });
+      const leaf = dag.nodes.get(leafId);
+      if (!leaf) return res.status(404).json({ error: `Leaf ${leafId} not found` });
+
+      const issue = gitHubSwarmBridge.fileIssueForLeaf(leaf);
+      res.json({ issue });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to file issue' });
+    }
+  });
+
+  app.post("/api/github-swarm/submit-pr", (req, res) => {
+    try {
+      const { leafId, author, leanProofCode } = req.body;
+      if (!leafId || !leanProofCode) {
+        return res.status(400).json({ error: 'leafId and leanProofCode are required' });
+      }
+      const result = gitHubSwarmBridge.submitProofPR(leafId, author || 'ExternalSwarmContributor', leanProofCode);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to submit PR' });
+    }
+  });
+
+  app.get("/api/github-swarm/ci-reports", (req, res) => {
+    res.json({ reports: gitHubSwarmBridge.cleanRoomReports });
+  });
+
+  // ==========================================
+  // System-Level Creative Force Multipliers
+  // ==========================================
+  app.get("/api/multipliers/prediction-market", (req, res) => {
+    res.json({
+      summaries: Array.from(predictionMarketEngine.leafSummaries.values()),
+      recentOrders: predictionMarketEngine.orders.slice(0, 30)
+    });
+  });
+
+  app.post("/api/multipliers/prediction-market/bid", (req, res) => {
+    try {
+      const { leafId, agentId, bidProbability, budgetUnits } = req.body;
+      const summary = predictionMarketEngine.placeBid(
+        leafId,
+        agentId || 'SwarmWorker',
+        Number(bidProbability) || 0.5,
+        Number(budgetUnits) || 50
+      );
+      res.json({ summary });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to place market bid' });
+    }
+  });
+
+  app.get("/api/multipliers/prover-arena", (req, res) => {
+    res.json({
+      contenders: proverArenaEngine.getSortedToolboxOrdering(),
+      matchHistory: proverArenaEngine.matchHistory.slice(0, 25)
+    });
+  });
+
+  app.post("/api/multipliers/prover-arena/match", (req, res) => {
+    try {
+      const { benchmarkGoal, problem, bitWidth } = req.body;
+      const match = proverArenaEngine.runTournamentRound(
+        benchmarkGoal || 'Standard Normalization Barrier',
+        problem || 'riemann',
+        Number(bitWidth) || 15000
+      );
+      res.json({ match, contenders: proverArenaEngine.getSortedToolboxOrdering() });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to execute arena match' });
+    }
+  });
+
+  app.get("/api/multipliers/red-team", (req, res) => {
+    res.json({ attackLog: glueAdversaryRedTeam.attackLog });
+  });
+
+  app.post("/api/multipliers/red-team/attack", (req, res) => {
+    try {
+      const { targetLemmaId, statement } = req.body;
+      const attack = glueAdversaryRedTeam.attackGlueTheorem(targetLemmaId || 'target_glue', statement || '');
+      res.json({ attack });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to execute red team attack' });
+    }
+  });
+
+  app.get("/api/multipliers/proof-golf", (req, res) => {
+    res.json({ leaderboard: proofGolfLeaderboard.entries });
+  });
+
+  app.post("/api/multipliers/proof-golf/submit", (req, res) => {
+    try {
+      const { lemmaId, problem, initialBitWidth, currentBitWidth, contributor, astStepCount } = req.body;
+      const entry = proofGolfLeaderboard.submitCompressedProof(
+        lemmaId,
+        problem || 'riemann',
+        Number(initialBitWidth) || 10000,
+        Number(currentBitWidth) || 5000,
+        contributor || 'SwarmGolfCompressor',
+        Number(astStepCount) || 10
+      );
+      res.json({ entry, leaderboard: proofGolfLeaderboard.entries });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to submit golf compression' });
+    }
+  });
+
+  app.get("/api/multipliers/lemma-broker", (req, res) => {
+    res.json({ candidates: crossProblemLemmaBroker.candidates });
+  });
+
+  app.get("/api/multipliers/dream-distill", (req, res) => {
+    res.json({
+      failureClusters: dreamAndDistillCycle.failureClusters
+    });
+  });
+
+  app.post("/api/multipliers/dream-distill/run", (req, res) => {
+    const summary = dreamAndDistillCycle.runOfflineDistillation();
+    res.json({ summary, failureClusters: dreamAndDistillCycle.failureClusters });
   });
 
   // Vite middleware

@@ -55,6 +55,7 @@ import { MillenniumProgramHub } from './components/MillenniumProgramHub';
 import { LlamaLocalEnginePanel } from './components/LlamaLocalEnginePanel';
 import { OpenSourceToolsPanel } from './components/OpenSourceToolsPanel';
 import { KernelCertificateCompilerPanel } from './components/KernelCertificateCompilerPanel';
+import { GithubSwarmForceMultipliersPanel } from './components/GithubSwarmForceMultipliersPanel';
 import { auth, loginWithGoogle, db } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
@@ -63,7 +64,7 @@ export default function App() {
   const [state, setState] = useState<OrchestratorState>(INITIAL_STATE);
   const [selectedProblemId, setSelectedProblemId] = useState<MillenniumProblemId>('riemann_hypothesis');
   const [activeTab, setActiveTab] = useState<
-    'millennium_program' | 'kernel_compiler' | 'llama_local' | 'os_tools' | 'frontier_mche' | 'tracks' | 'and_or_graph' | 'deterministic_core' | 'process_oracle' | 'ns_audit' | 'proxy' | 'barriers' | 'dag' | 'kernel' | 'bench'
+    'millennium_program' | 'github_multipliers' | 'kernel_compiler' | 'llama_local' | 'os_tools' | 'frontier_mche' | 'tracks' | 'and_or_graph' | 'deterministic_core' | 'process_oracle' | 'ns_audit' | 'proxy' | 'barriers' | 'dag' | 'kernel' | 'bench'
   >('millennium_program');
   const [isRunning, setIsRunning] = useState(false);
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -367,6 +368,14 @@ export default function App() {
             </button>
 
             <button
+              onClick={() => setActiveTab('github_multipliers')}
+              className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 whitespace-nowrap transition-colors ${activeTab === 'github_multipliers' ? 'bg-indigo-600/25 text-indigo-300 font-semibold border border-indigo-500/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+            >
+              <GitFork size={13} className="text-indigo-400" />
+              GitHub Swarm & Force Multipliers (ETP)
+            </button>
+
+            <button
               onClick={() => setActiveTab('kernel_compiler')}
               className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 whitespace-nowrap transition-colors ${activeTab === 'kernel_compiler' ? 'bg-emerald-600/25 text-emerald-300 font-semibold border border-emerald-500/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
@@ -509,6 +518,10 @@ export default function App() {
               selectedProblemId={selectedProblemId}
               onSelectProblem={(id) => setSelectedProblemId(id)}
             />
+          )}
+
+          {activeTab === 'github_multipliers' && (
+            <GithubSwarmForceMultipliersPanel />
           )}
 
           {activeTab === 'kernel_compiler' && (

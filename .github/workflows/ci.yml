@@ -1,0 +1,33 @@
+name: Deterministic Verification & CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    name: Typecheck, Lean Integrity & Deterministic Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run TypeScript Typecheck & Lint Gate
+        run: npm run lint
+
+      - name: Run Full Deterministic Test Suite (Zero-Sorry & Kernel Gates)
+        run: npm test
+
+      - name: Run Production Application Build
+        run: npm run build
