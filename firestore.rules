@@ -1,64 +1,68 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Global Safety Net
+
+    // 1. Global safety net (Default Deny Catch-all)
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Connection validation endpoint (read-only)
-    match /test/{docId} {
-      allow get: if true;
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Common Helpers
-    function isSignedIn() { return request.auth != null; }
-    function isOwner(swarmId) {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/swarms/$(swarmId)).data.ownerId == request.auth.uid
-      );
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
     }
-    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
-    function incoming() { return request.resource.data; }
-    function existing() { return resource.data; }
 
-    // Swarm Validation
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Validation helper for Swarm entity to avoid Update Gaps and Shadow Updates
     function isValidSwarm(data) {
-      return data.targetTheorem is string && data.targetTheorem.size() <= 256 &&
-             data.targetStatement is string && data.targetStatement.size() <= 2048 &&
-             data.phase in ['idle', 'decomposing', 'executing', 'assembling', 'finalizing'] &&
-             data.ownerId == request.auth.uid &&
-             data.createdAt == request.time;
+      return data.keys().hasAll(['id', 'ownerId', 'problemId', 'targetTheorem'])
+        && data.keys().size() <= 11
+        && data.id is string && data.id.size() <= 128
+        && data.ownerId is string && data.ownerId.size() <= 128
+        && data.problemId is string && data.problemId.size() <= 128
+        && data.targetTheorem is string && data.targetTheorem.size() <= 256
+        && (!data.keys().hasAny(['targetStatement']) || (data.targetStatement is string && data.targetStatement.size() <= 10000))
+        && (!data.keys().hasAny(['activePortfolioTier']) || (data.activePortfolioTier is string && data.activePortfolioTier.size() <= 64))
+        && (!data.keys().hasAny(['phase']) || (data.phase is string && (data.phase == 'idle' || data.phase == 'running' || data.phase == 'paused' || data.phase == 'completed' || data.phase == 'failed')))
+        && (!data.keys().hasAny(['spent']) || (data.spent is number && data.spent >= 0 && data.spent <= 1000000))
+        && (!data.keys().hasAny(['budget']) || (data.budget is number && data.budget >= 0 && data.budget <= 10000000));
     }
 
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 2. Swarms Collection matches
     match /swarms/{swarmId} {
-      allow get: if isSignedIn() && (resource.data.ownerId == request.auth.uid);
+      allow get: if isSignedIn() && isOwner(existing().ownerId);
+      
       allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(swarmId) && isValidSwarm(incoming());
-      allow update: if isSignedIn() && isOwner(swarmId) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['phase', 'spent', 'budget'])
-      );
-      allow delete: if false; // Swarms are archived, not deleted
 
-      match /lemmas/{lemmaId} {
-        allow read: if isOwner(swarmId);
-        allow write: if isOwner(swarmId);
-      }
+      allow create: if isSignedIn()
+        && isValidId(swarmId)
+        && isValidSwarm(incoming())
+        && isOwner(incoming().ownerId);
 
-      match /ledger/{entryId} {
-        allow read: if isOwner(swarmId);
-        allow create: if isOwner(swarmId);
-      }
+      allow update: if isSignedIn()
+        && isValidId(swarmId)
+        && isValidSwarm(incoming())
+        && isOwner(existing().ownerId)
+        && incoming().ownerId == existing().ownerId
+        && incoming().problemId == existing().problemId
+        && incoming().id == existing().id;
 
-      match /agents/{agentId} {
-        allow read: if isOwner(swarmId);
-        allow write: if isOwner(swarmId);
-      }
-
-      match /logs/{logId} {
-        allow read: if isOwner(swarmId);
-        allow create: if isOwner(swarmId);
-      }
+      allow delete: if isSignedIn() && isOwner(existing().ownerId);
     }
   }
 }

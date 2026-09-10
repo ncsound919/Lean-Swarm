@@ -1656,7 +1656,15 @@ export default function App() {
           {/* Tab 7: Proof Ledger */}
           {activeTab === 'ledger' && (
             <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-white">Cryptographic Kernel Proof Ledger</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-white">Cryptographic Kernel Proof Ledger</h3>
+                <span className="text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded font-medium">
+                  Offline Git & GitHub Sync Simulation
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed bg-slate-950/40 p-3 rounded-lg border border-slate-800/60">
+                <strong>Simulation Notice:</strong> Git branches are calculated on a per-lemma basis (e.g. <code>leaf/l1-reduction</code>) with custom cryptographic provenance hashes. Active GitHub API writes (opening actual pull requests) are safely simulated locally in this sandboxed playpen to run securely without requiring upstream credentials.
+              </p>
               {state?.ledger && state.ledger.length > 0 ? (
                 <div className="space-y-2">
                   {state.ledger.map((entry) => (

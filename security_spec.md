@@ -1,28 +1,151 @@
-# Security Specification - Lean Swarm Orchestrator
+# Security Specification & "Dirty Dozen" Penetration Test Cases
 
-## Data Invariants
-- Only the owner of a swarm can initiate or pause it.
-- Lemmas can only be updated by the server-side verifier/orchestrator (or the owner in theory, but primarily server).
-- The verifier is the only agent that can promote a lemma to 'verified' status.
-- All writes must adhere to the schema defined in firebase-blueprint.json.
+## 1. Data Invariants
+- **Identity Invariant**: A swarm document must have an `ownerId` that strictly matches the authenticated user's UID (`request.auth.uid`). No user can create or modify another user's swarm data.
+- **Resource Poisoning Protection**: All path variables, IDs, and string properties must be strictly limited in size (e.g., UIDs <= 128 characters, string values <= 256 characters) to prevent Denial of Wallet resource attacks.
+- **State Integrity**: Life-cycle phase values must adhere to the defined enum list: `["idle", "running", "paused", "completed", "failed"]`.
+- **Temporal Integrity**: Time-stamps must be mathematically valid integers.
 
-## The Dirty Dozen Payloads (Rejection Targets)
-1. **Unauthorized Swarm Creation**: Creating a swarm with an `ownerId` that doesn't match the current user.
-2. **Ghost Lemma Injection**: Adding a lemma with an ID that doesn't match the 'L[0-9]+' pattern.
-3. **Budget Manipulation**: Updating the `spent` field to a negative value or bypassing the `budget`.
-4. **Identity Spoofing**: Updating a swarm's `ownerId` to hijack control.
-5. **Phase Shortcutting**: Skipping directly to `finalizing` without the verifier promoting all lemmas.
-6. **Agent Impersonation**: A client trying to update an agent's `status` to 'verified' when it's an AI agent.
-7. **POISON_STRING_ID**: Using a 1MB string as a lemma document ID.
-8. **Malicious Proof Injection**: Updating `leanSource` with a script that exceeds the size limit.
-9. **Ledger Tampering**: Deleting a negative result to hide failures.
-10. **Admin Escalation**: Setting `isAdmin` on a user profile if we had one (we use a separate admin check).
-11. **Timestamp Faking**: Providing a manual `createdAt` instead of using `request.time`.
-12. **Orphaned Lemma**: Creating a lemma that refers to a non-existent swarm.
+---
 
-## Test Runner (Logic Simulation)
-All these must return `PERMISSION_DENIED`.
-- `create /swarms/s1 { ownerId: 'other_user' }` -> FAIL
-- `update /swarms/s1 { ownerId: 'new_owner' }` -> FAIL
-- `create /swarms/s1/lemmas/hack { id: 'bad_id' }` -> FAIL
-- `update /swarms/s1 { phase: 'finalizing' }` if not all lemmas verified -> FAIL
+## 2. The "Dirty Dozen" Payloads
+The following 12 payloads are designed to break the laws of Identity, Integrity, and State, and must be rejected by `firestore.rules`:
+
+### P1: Identity Spoofing (Unauthenticated Create)
+Attempt to create a swarm document without any authenticated session credentials.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH"
+}
+```
+
+### P2: Owner ID Mimicking (UID Mismatch)
+Authenticated user tries to write a swarm owned by another user.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_different",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH"
+}
+```
+
+### P3: Missing Required Fields
+Attempt to create a swarm document missing the mandatory `problemId` field.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "targetTheorem": "RH"
+}
+```
+
+### P4: Resource Poisoning (Oversized Swarm ID)
+Attempt to create a swarm with a system ID exceeding 128 characters.
+```json
+{
+  "id": "swarm_123_extremely_long_malicious_id_over_128_characters_intended_to_bloat_the_database_and_cause_denial_of_wallet_exhaustion_attacks",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH"
+}
+```
+
+### P5: Enum Value Injection (Illegal Phase State)
+Attempt to set a state phase that is not part of the allowed schema enum values.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH",
+  "phase": "super_intelligent_unauthorized_state"
+}
+```
+
+### P6: Negative Spent Budget
+Attempt to write a negative value for computational spendings.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH",
+  "spent": -50000
+}
+```
+
+### P7: Value Poisoning (Invalid Type for Spent)
+Attempt to submit a non-numeric string value for the `spent` budget.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH",
+  "spent": "ten_thousand_dollars_malicious_string"
+}
+```
+
+### P8: PII Blanket Read Exposure
+Attempt to read multiple swarm documents belonging to other users via a broad list query.
+```json
+{
+  "query": "select * from swarms"
+}
+```
+
+### P9: Self-Assigned Role Elevation
+Attempt to write an unauthorized custom claim or role field to the document to compromise downstream operations.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH",
+  "role": "admin"
+}
+```
+
+### P10: Ghost Field Shadow Update
+Attempt to update a document with a non-schema "ghost" field to inject unstructured data.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH",
+  "ghost_field_is_verified": true
+}
+```
+
+### P11: Non-Verbatim Update Keys (Shadow Overwrite)
+Attempt to update immutable identifiers such as `problemId` post-creation.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "p_vs_np_unauthorized_swap",
+  "targetTheorem": "RH"
+}
+```
+
+### P12: Out-of-bounds Extreme Allocation
+Attempt to set an excessive, out-of-bounds maximum budget.
+```json
+{
+  "id": "swarm_123",
+  "ownerId": "user_abc",
+  "problemId": "riemann_hypothesis",
+  "targetTheorem": "RH",
+  "budget": 9999999999
+}
+```
+
+---
+
+## 3. The Test Suite Assertions (TDD Execution)
+All Dirty Dozen payloads must evaluate to `PERMISSION_DENIED` in client-side queries. This is verified by our master security rules.

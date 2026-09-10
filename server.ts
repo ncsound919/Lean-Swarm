@@ -24,8 +24,43 @@ async function startServer() {
   app.use(express.json({ limit: '10mb' }));
   const PORT = 3000;
 
+  // --- Secure Auth Middleware ---
+  const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const configuredToken = process.env.SWARM_API_TOKEN;
+    if (!configuredToken) {
+      console.warn('[SECURITY WARNING] SWARM_API_TOKEN is not configured. Running in unauthenticated development mode.');
+      return next();
+    }
+
+    const authHeader = req.headers.authorization;
+    const queryToken = req.query.token as string;
+    
+    let token = '';
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split('Bearer ')[1];
+    } else if (queryToken) {
+      token = queryToken;
+    }
+
+    if (token === configuredToken) {
+      return next();
+    }
+
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing API token.' });
+  };
+
   // Start background scheduler heartbeat on boot
   globalScheduler.start();
+
+  // Mount Auth Middleware on all sensitive api sub-routes
+  app.use('/api/swarm', authMiddleware);
+  app.use('/api/scheduler', authMiddleware);
+  app.use('/api/leaves', authMiddleware);
+  app.use('/api/dag', authMiddleware);
+  app.use('/api/ledger', authMiddleware);
+  app.use('/leaves', authMiddleware);
+  app.use('/dag', authMiddleware);
+  app.use('/ledger', authMiddleware);
 
   // --- Swarm Health & State API Endpoints ---
   app.get('/api/health', (_req, res) => {
