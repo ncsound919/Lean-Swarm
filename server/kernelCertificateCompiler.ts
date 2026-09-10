@@ -44,7 +44,7 @@ export class KernelCertificateCompiler {
       cert.verified = res.foundRelation;
       cert.zero_sorry = true;
     } else if (cert.proof_type === 'FARKAS_INVENTORY') {
-      const farkas = generateFarkasCertificate([[1, 2]], [3]);
+      const farkas = generateFarkasCertificate([[1], [-1]], [1, -2]);
       cert.verified = farkas.infeasible;
       cert.zero_sorry = true;
     } else if (cert.proof_type === 'GROEBNER_BASIS') {

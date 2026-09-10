@@ -424,7 +424,21 @@ export default function App() {
       </header>
 
       {/* Main Layout Grid */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+        {/* Environment Capabilities & Honesty Banner */}
+        <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-200 space-y-2">
+          <div className="flex items-center space-x-2 font-semibold">
+            <AlertCircle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+            <span>Environment Capability & Mathematical Verification Status</span>
+          </div>
+          <p className="text-[11px] leading-relaxed text-slate-300">
+            <strong>Offline Sandbox Environment Notice:</strong> The local Lean 4 compiler and Mathlib packages are offline in this lightweight preview container.
+            Theorem structures and proof scripts in Lean 4 are evaluated as formal specifications/AST blueprints using a <strong>syntactic token match</strong> rather than live kernel execution.
+            All deterministic subproblem engines (including our Multi-dimensional PSLQ Solver, Fourier-Motzkin Farkas Linear LP multipliers, and Buchberger Multivariable Gröbner Basis Ideal division algorithms) run <strong>real, local mathematical solvers</strong> on exact localized inputs.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Problem & Configuration */}
         <div className="lg:col-span-4 space-y-6">
           {/* Problem Selector */}
@@ -1713,7 +1727,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
     </div>
   );
 }

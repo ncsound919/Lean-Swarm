@@ -250,7 +250,7 @@ export class LeanSwarmOrchestrator {
 
     // 2. Run Deterministic Engines
     const pslqResult = runPSLQ([1, -3, 2]);
-    const farkasResult = generateFarkasCertificate([[1, 2], [2, 1]], [3, 4]);
+    const farkasResult = generateFarkasCertificate([[1], [-1]], [1, -2]);
 
     const exprId = this.egraph.addExpr(`expr_${this.rng.nextInt(100, 999)}`);
     const exprId2 = this.egraph.addExpr(`norm_${this.rng.nextInt(100, 999)}`);

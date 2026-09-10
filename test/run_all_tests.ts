@@ -50,7 +50,7 @@ async function main() {
     process.exit(1);
   }
 
-  const farkas = generateFarkasCertificate([[1, 2]], [3]);
+  const farkas = generateFarkasCertificate([[1], [-1]], [1, -2]);
   if (!farkas.infeasible || !farkas.certificateHash) {
     console.error('❌ FAILED: Farkas certificate generation');
     process.exit(1);

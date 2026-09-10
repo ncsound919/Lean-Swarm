@@ -103,8 +103,8 @@ theorem verify_target : ${statementLean} := by
       zeroSorry: !containsSorry,
       kernelHash,
       output: isSyntacticallyValid
-        ? `[KERNEL AST VERIFIER] Verified zero-sorry proof AST for: ${statementLean}`
-        : `[KERNEL AST VERIFIER] Proof failed or contained forbidden 'sorry' keyword.`,
+        ? `[OFFLINE ENVIRONMENT FALLBACK] Lean 4 compiler & Mathlib are offline in this container. Verifying raw proof text format as a syntactic blueprint only. Detected tactic token match. THIS IS NOT A REAL MATHEMATICAL KERNEL CHECK: ${statementLean}`
+        : `[OFFLINE ENVIRONMENT FALLBACK] Verification failed: proof contained 'sorry', 'admit', or lacked recognized tactics.`,
       executionMs: Date.now() - startTime,
       engineUsed: 'KERNEL_AST_VERIFIER'
     };
