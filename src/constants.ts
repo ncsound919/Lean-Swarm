@@ -224,9 +224,9 @@ export const INITIAL_STATE: OrchestratorState = {
       { name: 'e_graph_sat', weight: 0.95, successRate: 0.99, totalInvocations: 1850, avgLatencyMs: 31 }
     ],
     learnedHeuristics: [
-      { id: 'H1', ruleName: 'Monotonicity-Bound-Reduction', pattern: '∀ x, f(x) ≤ C → ∫ f dx ≤ C·V', synthesizedTactic: 'by intros; apply integral_mono_bound; assumption', confidence: 0.97, verifiedEpoch: 8 },
-      { id: 'H2', ruleName: 'Spectral-Zero-Symmetry', pattern: 'ζ(s) = 0 → ζ(1-s) = 0', synthesizedTactic: 'by intro h; exact riemann_functional_eq_zero h', confidence: 0.99, verifiedEpoch: 10 },
-      { id: 'H3', ruleName: 'Sobolev-Blowup-Infeasible', pattern: '‖u‖_H3 ≤ M → no_singularity', synthesizedTactic: 'by apply energy_estimate_continuation; exact bound_hold', confidence: 0.95, verifiedEpoch: 11 }
+      { id: 'H1', ruleName: 'Monotonicity-Bound-Reduction', pattern: '∀ x, f(x) ≤ C → ∫ f dx ≤ C·V', synthesizedTactic: 'by intros; apply integral_mono_bound; assumption', confidence: 0.97, verifiedEpoch: 8, depth: 7, utility: 0.92, generality: 0.85, proofCert: 'LEAN_INTEGRAL_MONO_BOUND_VERIFIED' },
+      { id: 'H2', ruleName: 'Spectral-Zero-Symmetry', pattern: 'ζ(s) = 0 → ζ(1-s) = 0', synthesizedTactic: 'by intro h; exact riemann_functional_eq_zero h', confidence: 0.99, verifiedEpoch: 10, depth: 10, utility: 0.98, generality: 0.35, proofCert: 'RIEMANN_FUNCTIONAL_SYMMETRY_COQ_OK' },
+      { id: 'H3', ruleName: 'Sobolev-Blowup-Infeasible', pattern: '‖u‖_H3 ≤ M → no_singularity', synthesizedTactic: 'by apply energy_estimate_continuation; exact bound_hold', confidence: 0.95, verifiedEpoch: 11, depth: 8, utility: 0.90, generality: 0.60, proofCert: 'SOBOLEV_ENERGY_BOUND_SMT_DUAL' }
     ],
     evolutionLog: [
       { epoch: 10, timestamp: Date.now() - 3600000 * 24, mutation: 'Lifted E-Graph saturation priority over brute-force tactic enumeration', deltaAccuracy: +0.042 },

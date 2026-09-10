@@ -116,6 +116,10 @@ export interface LearnedHeuristic {
   synthesizedTactic: string;
   confidence: number;
   verifiedEpoch: number;
+  depth?: number;
+  utility?: number;
+  generality?: number;
+  proofCert?: string;
 }
 
 export interface SystemWeakness {

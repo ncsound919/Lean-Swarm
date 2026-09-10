@@ -379,6 +379,9 @@ export class LeanSwarmOrchestrator {
     };
 
     this.state.ledger.push(ledgerEntry);
+    if (this.state.ledger.length > 50) {
+      this.state.ledger.shift();
+    }
     this.state.spent += 0.0001;
     ledgerEntriesAdded++;
 
@@ -529,6 +532,9 @@ export class LeanSwarmOrchestrator {
       kernelValid: true
     };
     this.state.ledger.unshift(ledgerEntry);
+    if (this.state.ledger.length > 50) {
+      this.state.ledger.pop();
+    }
 
     this.log(`[SUBPROBLEM WORKFLOW] Completed ${domain.toUpperCase()} agentic subproblem: ${result.summary}`);
     this.syncToFirestore();
@@ -666,6 +672,9 @@ export class LeanSwarmOrchestrator {
       kernelValid: true
     };
     this.state.ledger.push(ledgerEntry);
+    if (this.state.ledger.length > 50) {
+      this.state.ledger.shift();
+    }
     this.state.spent += 0.0042;
 
     this.state.phase = 'converged';
@@ -678,6 +687,9 @@ export class LeanSwarmOrchestrator {
   private log(msg: string) {
     const formatted = `[${new Date().toLocaleTimeString()}] ${msg}`;
     this.state.logs.push(formatted);
+    if (this.state.logs.length > 100) {
+      this.state.logs.shift();
+    }
     console.log(`[ORCHESTRATOR] ${msg}`);
     try {
       if (this.swarmRef) {

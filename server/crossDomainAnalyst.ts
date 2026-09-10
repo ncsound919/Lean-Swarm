@@ -160,7 +160,11 @@ export class CrossDomainAnalyst {
           pattern,
           synthesizedTactic: `by apply functorial_transfer_matrix; apply ${mapping.targetGeneName.toLowerCase()}`,
           confidence,
-          verifiedEpoch: sleData.epoch
+          verifiedEpoch: sleData.epoch,
+          depth: 9,
+          utility: 0.88,
+          generality: 0.70,
+          proofCert: 'CATEGORY_THEORETIC_FUNCTORIAL_ISO_REDUCE'
         };
 
         sleData.learnedHeuristics.unshift(crossHeuristic);

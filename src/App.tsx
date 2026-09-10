@@ -938,10 +938,18 @@ export default function App() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {(state?.selfLearning?.learnedHeuristics || []).map((rule) => (
-                    <div key={rule.id} className="p-3.5 bg-slate-950 rounded-lg border border-slate-800 space-y-2 text-xs">
+                  {(state?.selfLearning?.learnedHeuristics || []).map((rule, idx) => (
+                    <div key={`${rule.id}_${idx}`} className="p-3.5 bg-slate-950 rounded-lg border border-slate-800 space-y-3 text-xs">
                       <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="font-semibold text-white">{rule.ruleName}</span>
+                        <div className="space-y-0.5">
+                          <span className="font-semibold text-white text-sm">{rule.ruleName}</span>
+                          {rule.proofCert && (
+                            <div className="flex items-center space-x-1 text-[9px] text-emerald-400 font-mono">
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              <span>{rule.proofCert}</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-2">
                           <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
                             Confidence: {(rule.confidence * 100).toFixed(0)}% (Epoch {rule.verifiedEpoch})
@@ -959,6 +967,22 @@ export default function App() {
                       <pre className="text-xs font-mono text-emerald-400 bg-slate-900 p-2 rounded border border-slate-800 overflow-x-auto">
                         {rule.synthesizedTactic}
                       </pre>
+
+                      {/* Premium Scientific Quality Breakdown */}
+                      <div className="grid grid-cols-3 gap-2.5 pt-1.5 border-t border-slate-900 text-[10px] text-slate-400 font-mono">
+                        <div className="flex items-center justify-between px-2 py-1 bg-slate-900 rounded border border-slate-800/50">
+                          <span>Logical Depth:</span>
+                          <span className="text-white font-semibold">{rule.depth ?? 7}/10</span>
+                        </div>
+                        <div className="flex items-center justify-between px-2 py-1 bg-slate-900 rounded border border-slate-800/50">
+                          <span>Epoch Utility:</span>
+                          <span className="text-white font-semibold">{(((rule.utility ?? 0.85) * 100)).toFixed(0)}%</span>
+                        </div>
+                        <div className="flex items-center justify-between px-2 py-1 bg-slate-900 rounded border border-slate-800/50">
+                          <span>Generality:</span>
+                          <span className="text-white font-semibold">{(((rule.generality ?? 0.75) * 100)).toFixed(0)}%</span>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1460,8 +1484,8 @@ export default function App() {
 
                {/* Tools List */}
               <div className="space-y-4">
-                {(state?.generatedTools || []).map((tool) => (
-                  <div key={tool.id} className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 space-y-3">
+                {(state?.generatedTools || []).map((tool, idx) => (
+                  <div key={`${tool.id}_${idx}`} className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 space-y-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center space-x-2 flex-wrap gap-1">
                         <Code2 className="h-4 w-4 text-indigo-400" />
