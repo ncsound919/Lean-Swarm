@@ -118,11 +118,45 @@ export interface LearnedHeuristic {
   verifiedEpoch: number;
 }
 
+export interface SystemWeakness {
+  id: string;
+  type: 'low_tactic_yield' | 'high_latency_tool' | 'blocked_track' | 'dag_bottleneck' | 'budget_friction';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  targetComponent: string;
+  description: string;
+  detectedAt: number;
+  status: 'detected' | 'remediating' | 'resolved';
+  remediationAction: string;
+  resolvedAt?: number;
+  performanceImpact: string;
+}
+
+export interface RemediationEntry {
+  id: string;
+  weaknessId: string;
+  timestamp: number;
+  weaknessType: string;
+  actionTaken: string;
+  outcome: string;
+  efficiencyGain: number;
+}
+
+export interface AutoRemediationStats {
+  totalDetected: number;
+  totalResolved: number;
+  autoFixSuccessRate: number;
+  avgResolutionTimeMs: number;
+  criticalResolvedCount: number;
+}
+
 export interface SelfLearningEngineState {
   epoch: number;
   tacticWeights: TacticWeight[];
   learnedHeuristics: LearnedHeuristic[];
   evolutionLog: { epoch: number; timestamp: number; mutation: string; deltaAccuracy: number }[];
+  detectedWeaknesses?: SystemWeakness[];
+  remediationLog?: RemediationEntry[];
+  autoRemediationStats?: AutoRemediationStats;
 }
 
 export interface GeneratedTool {
@@ -135,6 +169,43 @@ export interface GeneratedTool {
   verified: boolean;
   createdAt: number;
   usageCount: number;
+  promotedFromHeuristicId?: string;
+  promotedAtEpoch?: number;
+  efficiencyGainPercentage?: number;
+  successRate?: number;
+}
+
+export type SubproblemDomain = 
+  | 'analytic_nt'
+  | 'pde'
+  | 'qft'
+  | 'tcs'
+  | 'arithmetic_ag'
+  | 'complex_ag'
+  | 'geometric_topology';
+
+export interface SubproblemWorkflowConfig {
+  domain: SubproblemDomain;
+  title: string;
+  targetProblemId: MillenniumProblemId;
+  parameters: Record<string, any>;
+}
+
+export interface SubproblemWorkflowResult {
+  id: string;
+  domain: SubproblemDomain;
+  title: string;
+  timestamp: number;
+  verified: boolean;
+  summary: string;
+  leanSubLemmas: LemmaNode[];
+  casCertificate: CASCertificate;
+  metrics: Record<string, any>;
+  barrierCheck: {
+    passed: boolean;
+    barrierName: string;
+    reasoning: string;
+  };
 }
 
 export interface DeepAnalytics {
@@ -144,6 +215,22 @@ export interface DeepAnalytics {
   tacticDistribution: { name: string; percentage: number; count: number }[];
   proofDepthTimeline: { timestamp: number; depth: number; lemmasProved: number }[];
   budgetTrend: { timestamp: number; spent: number }[];
+  toolPromotionMetrics?: {
+    totalPromotedTools: number;
+    avgEfficiencyGain: number;
+    highestPerformingTool: string;
+    autoPromotionCount: number;
+    manualPromotionCount: number;
+  };
+}
+
+export interface SupervisorState {
+  mode: 'FULL' | 'NO_LLM' | 'NO_STORE' | 'DETERMINISTIC_ONLY' | 'SAFE_HALT';
+  repairsThisHour: number;
+  consecutiveFailures: Record<string, number>;
+  consecutiveCanaries: Record<string, number>;
+  lastProbes: Record<string, any>;
+  lastStepSeq: number;
 }
 
 export interface OrchestratorState {
@@ -169,5 +256,46 @@ export interface OrchestratorState {
   selfLearning?: SelfLearningEngineState;
   generatedTools?: GeneratedTool[];
   analytics?: DeepAnalytics;
+  subproblemResults?: SubproblemWorkflowResult[];
+  supervisor?: SupervisorState;
+  recombinationData?: {
+    poolSize: number;
+    populationSize: number;
+    topFitness: number;
+    ledgerCount: number;
+    minedGeneCount: number;
+    topHybrids: Array<{ name: string; template: string; fitness: number; domainPath: string[] }>;
+  };
+  crossDomainAnalysis?: CrossDomainAnalysisReport;
   proxyData?: any;
 }
+
+export interface CrossDomainMapping {
+  id: string;
+  sourceDomain: string;
+  targetDomain: string;
+  sourceGeneName: string;
+  targetGeneName: string;
+  matchingSorts: string[];
+  mappingType: 'isomorphism' | 'functorial_transfer' | 'pipeline_chain';
+  isomorphismStrength: number;
+  description: string;
+}
+
+export interface CrossDomainPathway {
+  id: string;
+  path: string[];
+  activeGenes: string[];
+  combinedTemplate: string;
+  mathematicalSignificance: string;
+}
+
+export interface CrossDomainAnalysisReport {
+  lastAnalyzedTimestamp: number;
+  activeDomainsCount: number;
+  domainIntersectionsCount: number;
+  mappings: CrossDomainMapping[];
+  pathways: CrossDomainPathway[];
+  synthesizedHeuristicsCount: number;
+}
+

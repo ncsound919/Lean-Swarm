@@ -1,18 +1,7 @@
 import crypto from 'crypto';
+import { SeededRNG } from './seededRNG';
 
-export class SeededRNG {
-  private seed: number;
-
-  constructor(seed: number = 42) {
-    this.seed = seed % 2147483647;
-    if (this.seed <= 0) this.seed += 2147483646;
-  }
-
-  public next(): number {
-    this.seed = (this.seed * 16807) % 2147483647;
-    return (this.seed - 1) / 2147483646;
-  }
-}
+export { SeededRNG };
 
 export interface MCTSNode {
   id: string;
@@ -36,6 +25,10 @@ export class MonteCarloHyperTree {
       children: [],
       tactic: 'initial'
     };
+  }
+
+  public getRoot(): MCTSNode {
+    return this.root;
   }
 
   public selectUCT(node: MCTSNode, c: number = 1.414): MCTSNode {
